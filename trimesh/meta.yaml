@@ -1,0 +1,101 @@
+{% set name = "trimesh" %}
+{% set version = "2.20.6" %}
+{% set file_ext = "tar.gz" %}
+{% set hash_type = "sha256" %}
+{% set hash_value = "f5e6ba207842dcc79e7f39be9fe8009727276171961c5802d8a2a61a95f0f28e" %}
+
+package:
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
+
+source:
+  fn: '{{ name }}-{{ version }}.{{ file_ext }}'
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.{{ file_ext }}
+  '{{ hash_type }}': '{{ hash_value }}'
+
+build:
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - numpy
+    - scipy
+    - networkx
+    - rtree
+    - shapely
+  run:
+    - python
+    - numpy
+    - scipy
+    - networkx
+    - rtree
+    - shapely
+
+test:
+  imports:
+    - trimesh
+    - trimesh.interfaces
+    - trimesh.io
+    - trimesh.path
+    - trimesh.path.io
+    - trimesh.ray
+    - trimesh.resources
+    - trimesh.scene
+
+about:
+  home: http://github.com/mikedh/trimesh
+  license: MIT License
+  license_family: MIT
+  license_file: ''
+  summary: Import, export, process, analyze and view triangular meshes.
+  description: "trimesh\n=======\n\n|Build Status| |Build status|\n\nTrimesh is a Python (2.7-3\\*) library for loading and using `triangular\nmeshes <https://en.wikipedia.org/wiki/Triangle_mesh>`__. The\
+    \ goal of the\nlibrary is to provide a fully featured Trimesh object which allows for\neasy manipulation and analysis, in the style of the excellent Polygon\nobject in the `Shapely\nlibrary <http://toblerity.org/shapely/manual.html>`__.\n\
+    \nThe API is mostly stable, but this should not be relied on and is not\nguaranteed; install a specific version if you plan on deploying\nsomething using trimesh as a backend.\n\nBasic Installation\n\
+    ------------------\n\nThe minimum set of packages required to import trimesh are\n`numpy <http://www.numpy.org/>`__, `scipy <http://www.scipy.org>`__ and\n`networkx <https://networkx.github.io>`__.\
+    \ Installing other packages\nmentioned adds functionality but is not required.\n\nThe easiest and recommended way to get the most functionality out of\nTrimesh is to install a `conda\nenvironment <https://conda.io/miniconda.html>`__,\
+    \ then:\n\n.. code:: bash\n\n    # install modules for spatial indexing and  polygon manipulation\n    # these generally install cleanly on Linux, Windows, and OSX\n    conda install -c conda-forge\
+    \ rtree shapely\n\n    # install pyembree for fast ray queries\n    # Linux and OSX only\n    conda install -c conda-forge pyembree\n\n    # install Trimesh and soft dependencies that are easy to install\n\
+    \    # these generally install cleanly on Linux, Windows, and OSX\n    pip install trimesh[easy]\n\nOr, for the easiest install with only **minimal dependencies** (slower\nray queries, no vector path\
+    \ handling, mesh creation, viewer, etc):\n\n.. code:: bash\n\n    pip install trimesh\n\nFurther information is available in the `advanced installation\ndocumentation <http://trimesh.readthedocs.io/en/latest/install.html>`__.\n\
+    \nQuick Start\n-----------\n\nHere is an example of loading a mesh from file and colorizing its faces.\nHere is a nicely formatted `ipython notebook\nversion <http://github.com/mikedh/trimesh/blob/master/examples/quick_start.ipynb>`__\n\
+    of this example. Also check out the `cross section\nexample <https://github.com/mikedh/trimesh/blob/master/examples/section.ipynb>`__\nor possibly the `integration of a function over a mesh\nexample\
+    \ <https://github.com/mikedh/trimesh/blob/master/examples/integrate.ipynb>`__.\n\n.. code:: python\n\n    import numpy as np\n    import trimesh\n\n    # load a file by name or from a buffer\n    mesh\
+    \ = trimesh.load_mesh('../models/featuretype.STL')\n\n    # is the current mesh watertight?\n    mesh.is_watertight\n\n    # what's the euler number for the mesh?\n    mesh.euler_number\n\n    # the\
+    \ convex hull is another Trimesh object that is available as a property\n    # lets compare the volume of our mesh with the volume of its convex hull\n    np.divide(mesh.volume, mesh.convex_hull.volume)\n\
+    \n    # since the mesh is watertight, it means there is a\n    # volumetric center of mass which we can set as the origin for our mesh\n    mesh.vertices -= mesh.center_mass\n\n    # what's the moment\
+    \ of inertia for the mesh?\n    mesh.moment_inertia\n\n    # if there are multiple bodies in the mesh we can split the mesh by\n    # connected components of face adjacency\n    # since this example\
+    \ mesh is a single watertight body we get a list of one mesh\n    mesh.split()\n\n    # facets are groups of coplanar adjacent faces\n    # set each facet to a random color\n    # colors are 8 bit RGBA\
+    \ by default (n,4) np.uint8\n    for facet in mesh.facets:\n        mesh.visual.face_colors[facet] = trimesh.visual.random_color()\n\n    # preview mesh in an opengl window if you installed pyglet with\
+    \ pip\n    mesh.show()\n\n    # transform method can be passed a (4,4) matrix and will cleanly apply the transform\n    mesh.apply_transform(trimesh.transformations.random_rotation_matrix())\n\n   \
+    \ # axis aligned bounding box is available\n    mesh.bounding_box.extents\n\n    # a minimum volume oriented bounding box also available\n    # primitives are subclasses of Trimesh objects which automatically\
+    \ generate\n    # faces and vertices from data stored in the 'primitive' attribute\n    mesh.bounding_box_oriented.primitive.extents\n    mesh.bounding_box_oriented.primitive.transform\n\n    # show\
+    \ the mesh appended with its oriented bounding box\n    # the bounding box is a trimesh.primitives.Box object, which subclasses\n    # Trimesh and lazily evaluates to fill in vertices and faces when\
+    \ requested\n    # (press w in viewer to see triangles)\n    (mesh + mesh.bounding_box_oriented).show()\n\n    # bounding spheres and bounding cylinders of meshes are also\n    # available, and will\
+    \ be the minimum volume version of each\n    # except in certain degenerate cases, where they will be no worse\n    # than a least squares fit version of the primitive.\n    print(mesh.bounding_box_oriented.volume,\
+    \ \n          mesh.bounding_cylinder.volume,\n          mesh.bounding_sphere.volume)\n\nFeatures\n--------\n\n-  Import binary/ASCII STL, Wavefront OBJ, ASCII OFF, binary/ASCII PLY,\n   XAML, 3DXML,\
+    \ etc.\n-  Import additional mesh formats using\n   `assimp <http://www.assimp.org/main_features_formats.html>`__\n   (requires pyassimp or cyassimp)\n-  Import and export 2D or 3D vector paths from/to\
+    \ DXF or SVG files\n-  Export meshes as binary STL, binary PLY, ASCII OFF, COLLADA,\n   dictionaries, JSON- serializable dictionaries (base64 encoded\n   arrays), MSGPACK- serializable dictionaries\
+    \ (binary string arrays)\n-  Preview meshes (requires pyglet)\n-  Internal caching of computed values (validated with a zlib.adler32\n   CRC on face/vertex data)\n-  Fast loading of binary files through\
+    \ importers written by defining\n   custom numpy dtypes\n-  Calculate face adjacencies quickly (for 234,230 face mesh .248 s)\n-  Calculate cross sections (.146 s)\n-  Split mesh based on face connectivity\
+    \ using networkx, graph-tool, or\n   scipy.sparse\n-  Calculate mass properties, including volume, center of mass, moment\n   of inertia, and principal components of inertia\n-  Find coplanar and adjacent\
+    \ groups of faces (.454 s)\n-  Fix triangle winding and normals to be consistent\n-  Find convex hulls of meshes\n-  Compute a rotation/translation/tessellation invariant identifier for\n   meshes\n\
+      -  Determine duplicate meshes from identifier\n-  Determine if a mesh is watertight\n-  Determine if a mesh is convex\n-  Repair single triangle and single quad holes\n-  Uniformly sample the surface\
+    \ of a mesh\n-  Ray-mesh queries including location, triangle id, etc.\n-  Boolean operations on meshes (intersection, union, difference) using\n   OpenSCAD or Blender as backend\n-  Voxelize watertight\
+    \ meshes\n-  Unit conversions\n-  Subdivide faces of a mesh\n-  Minimum volume oriented bounding boxes for meshes\n-  Minimum volume bounding sphere / n-spheres\n-  Symbolic integration of function(x,y,z)\
+    \ over a triangle\n-  Quick (sympy-numpy lambda) evaluation of symbolic integral result\n   over a mesh\n-  Calculate nearest point on mesh surface and signed distance\n-  Determine if a point lies\
+    \ inside or outside of a mesh using signed\n   distance\n-  Create meshes with primitive objects (Extrude, Box, Sphere) which are\n   subclasses of Trimesh\n-  Simple scene graph and transform tree\
+    \ which can be rendered (pyglet)\n   or exported.\n-  Numerous utility functions, such as transforming points, unitizing\n   vectors, tracking arrays for changes, grouping rows, etc.\n\nViewer\n------\n\
+    \nTrimesh includes an optional pyglet- based viewer for\ndebugging/inspecting. In the mesh view window:\n\n-  dragging rotates the view\n-  ctl + drag pans\n-  mouse wheel zooms\n-  'z' returns to the\
+    \ base view\n-  'w' toggles wireframe mode\n-  'c' toggles backface culling\n\nContainers\n----------\n\nIf you want to deploy something in a container that uses trimesh,\nautomated builds containing\
+    \ trimesh and its dependencies are available\non docker hub. For an image with all dependencies:\n\n``docker pull mikedh/trimesh``\n\nOr, for a much smaller image with no boolean operations and slightly\n\
+    slower graph operations (no graph-tool installed, trimesh will fall back\nto scipy or networkx):\n\n``docker pull mikedh/trimesh_minimal``\n\n.. |Build Status| image:: https://travis-ci.org/mikedh/trimesh.svg?branch=master\n\
+    \   :target: https://travis-ci.org/mikedh/trimesh\n.. |Build status| image:: https://ci.appveyor.com/api/projects/status/j8h3luwvst1tkghl?svg=true\n   :target: https://ci.appveyor.com/project/mikedh/trimesh"
+  doc_url: ''
+  dev_url: ''
+
+extra:
+  recipe-maintainers: 'Scott Sibole'
+
